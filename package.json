@@ -1,0 +1,45 @@
+{
+  "name": "anyllm",
+  "version": "0.1.0",
+  "description": "tiny school project that proxies a few llm apis from one server. free, no billing.",
+  "license": "MIT",
+  "author": "Aakash",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts config/config.yaml",
+    "dev:worker": "wrangler dev --tsconfig tsconfig.worker.json",
+    "build": "tsc",
+    "start": "node dist/index.js config/config.yaml",
+    "deploy": "wrangler deploy --minify --tsconfig tsconfig.worker.json",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write .",
+    "auth:generate": "ANYLLM_CONFIG=$(base64 -w0 config/config.yaml) npx @better-auth/cli generate && mv auth-schema.ts src/models/auth.ts",
+    "db:generate": "NODE_OPTIONS='--import tsx' ANYLLM_CONFIG=$(base64 -w0 config/config.yaml) drizzle-kit generate",
+    "db:migrate": "ANYLLM_CONFIG=$(base64 -w0 config/config.yaml) drizzle-kit migrate"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
+    "@cloudflare/workers-types": "^4.20250906.0",
+    "@google/genai": "^1.17.0",
+    "@hono/node-server": "^1.19.1",
+    "@neondatabase/serverless": "^1.0.1",
+    "@upstash/redis": "^1.35.3",
+    "better-auth": "^1.3.8",
+    "drizzle-orm": "^0.44.5",
+    "hono": "^4.9.6",
+    "music-metadata": "^11.8.3",
+    "openai": "^5.19.1",
+    "resend": "^6.0.3",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.13",
+    "drizzle-kit": "^0.31.4",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.34.0"
+  }
+}

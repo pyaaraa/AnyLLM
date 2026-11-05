@@ -1,0 +1,94 @@
+server:
+  host: 127.0.0.1
+  port: 3000
+  logging: dev
+
+auth:
+  enabled: false
+
+responses_store:
+  type: in_memory
+
+access_keys:
+  - sk-example-key-1
+  - sk-example-key-2
+
+providers:
+  openai:
+    type: openai
+    api_key: sk-openai-api-key
+  anthropic:
+    type: anthropic
+    api_key: sk-anthropic-api-key
+  google:
+    type: google
+    base_url: https://generativelanguage.googleapis.com/v1beta/openai
+    api_key: sk-google-api-key
+  fireworks:
+    type: fireworks
+    base_url: https://api.fireworks.ai/inference/v1
+    api_key: sk-fireworks-api-key
+  openrouter:
+    type: openai
+    responses: false
+    base_url: https://openrouter.ai/api/v1
+    api_key: sk-openrouter-api-key
+
+models:
+  openai/gpt-5:
+    providers:
+      - provider: openai
+        model: gpt-5
+  openai/gpt-image-1:
+    providers:
+      - provider: openai
+        model: gpt-image-1
+  openai/tts-1:
+    providers:
+      - provider: openai
+        model: tts-1
+  openai/gpt-4o-transcribe:
+    providers:
+      - provider: openai
+        model: gpt-4o-transcribe
+  openai/whisper-1:
+    providers:
+      - provider: openai
+        model: whisper-1
+  openai/text-embedding-3-large:
+    providers:
+      - provider: openai
+        model: text-embedding-3-large
+  anthropic/claude-sonnet-4:
+    providers:
+      - provider: anthropic
+        model: claude-sonnet-4-0
+        max_tokens: 64000
+  google/gemini-2.5-flash:
+    providers:
+      - provider: google
+        model: gemini-2.5-flash
+  google/imagen-4.0-generate-001:
+    providers:
+      - provider: google
+        model: imagen-4.0-generate-001
+  google/gemini-2.5-flash-image-preview:
+    providers:
+      - provider: google
+        model: gemini-2.5-flash-image-preview
+  black-forest-labs/flux-1-schnell-fp8:
+    providers:
+      - provider: fireworks
+        model: accounts/fireworks/models/flux-1-schnell-fp8
+  black-forest-labs/flux-1-kontext-pro:
+    providers:
+      - provider: fireworks
+        model: accounts/fireworks/models/flux-kontext-pro
+  black-forest-labs/flux-1-kontext-max:
+    providers:
+      - provider: fireworks
+        model: accounts/fireworks/models/flux-kontext-max
+  "*":
+    providers:
+      - provider: openrouter
+        model: ""

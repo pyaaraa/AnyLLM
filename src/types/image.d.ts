@@ -1,0 +1,30 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 Aakash
+
+import "openai/resources/images";
+
+declare module "openai/resources/images" {
+  interface ImageGenerateParamsBase {
+    negative_prompt?: string;
+    aspect_ratio?: string;
+    seed?: number;
+    guidance_scale?: number;
+    num_inference_steps?: number;
+    enhance_prompt?: boolean;
+    safety_tolerance?: number;
+  }
+
+  interface ImageEditParamsBase {
+    negative_prompt?: string;
+    aspect_ratio?: string;
+    seed?: number;
+    guidance_scale?: number;
+    num_inference_steps?: number;
+    enhance_prompt?: boolean;
+    safety_tolerance?: number;
+  }
+
+  interface ImagesResponse {
+    seed?: number;
+  }
+}
