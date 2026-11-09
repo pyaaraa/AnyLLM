@@ -1,10 +1,6 @@
-// SPDX-License-Identifier: MIT
-// Copyright (c) 2025 Aakash
-
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import type { ResponseCreateParamsBase } from "openai/resources/responses/responses";
-
 import { OpenAIResponsesAdapterFactory } from "../../../../adapters/openai/v1/responses/adapter.js";
 import { requireAuth } from "../../../../middlewares/auth.js";
 import { parseModel } from "../../../../middlewares/model.js";
@@ -13,68 +9,46 @@ import { recordApiCall } from "../../../../utils/usage.js";
 import { TimeKeeper } from "../../../../utils/chrono.js";
 import { ResponsesStoreFactory } from "../../../../utils/responses-store.js";
 import { iterateModelProviders } from "../../../../utils/utils.js";
-
 const responsesRouter = new Hono<ContextEnv>();
-
 responsesRouter.use(requireAuth(), parseModel);
-
 responsesRouter.post("/", async (c) => {
-  const body = await c.req.json();
-  const responsesStore = ResponsesStoreFactory.getStore(c);
-  return await iterateModelProviders(c, async (providerCfg, provider) => {
-    const reqBody = { ...body } as ResponseCreateParamsBase;
-    reqBody.model = providerCfg.model;
-
-    const adapter = OpenAIResponsesAdapterFactory.getAdapter(provider);
-    const timeKeeper = new TimeKeeper();
-    timeKeeper.record();
-    if (reqBody.stream !== true) {
-      const response = await adapter.sendRequest(provider, reqBody, {
-        responsesStore,
-        maxTokens: providerCfg.max_tokens,
-      });
-      timeKeeper.record();
-      if (reqBody.store !== false) {
-        await responsesStore.set(reqBody, response);
-      }
-      await recordApiCall(
-        c,
-        providerCfg.provider,
-        200,
-        timeKeeper.timestamps(),
-        adapter.usage,
-        undefined,
-        false,
-      );
-      return c.json(response);
-    }
-
-    const s = await adapter.sendRequestStreaming(provider, reqBody, {
-      responsesStore,
-      maxTokens: providerCfg.max_tokens,
-    });
-    return streamSSE(c, async (stream) => {
-      for await (const chunk of s) {
+    const body = await c.req.json();
+    const responsesStore = ResponsesStoreFactory.getStore(c);
+    return await iterateModelProviders(c, async (providerCfg, provider) => {
+        const reqBody = { ...body } as ResponseCreateParamsBase;
+        reqBody.model = providerCfg.model;
+        const adapter = OpenAIResponsesAdapterFactory.getAdapter(provider);
+        const timeKeeper = new TimeKeeper();
         timeKeeper.record();
-        await stream.writeSSE({
-          event: chunk.type,
-          data: JSON.stringify(chunk),
+        if (reqBody.stream !== true) {
+            const response = await adapter.sendRequest(provider, reqBody, {
+                responsesStore,
+                maxTokens: providerCfg.max_tokens,
+            });
+            timeKeeper.record();
+            if (reqBody.store !== false) {
+                await responsesStore.set(reqBody, response);
+            }
+            await recordApiCall(c, providerCfg.provider, 200, timeKeeper.timestamps(), adapter.usage, undefined, false);
+            return c.json(response);
+        }
+        const s = await adapter.sendRequestStreaming(provider, reqBody, {
+            responsesStore,
+            maxTokens: providerCfg.max_tokens,
         });
-      }
-      if (reqBody.store !== false && adapter.response) {
-        await responsesStore.set(reqBody, adapter.response);
-      }
-      await recordApiCall(
-        c,
-        providerCfg.provider,
-        200,
-        timeKeeper.timestamps(),
-        adapter.usage,
-        undefined,
-        true,
-      );
+        return streamSSE(c, async (stream) => {
+            for await (const chunk of s) {
+                timeKeeper.record();
+                await stream.writeSSE({
+                    event: chunk.type,
+                    data: JSON.stringify(chunk),
+                });
+            }
+            if (reqBody.store !== false && adapter.response) {
+                await responsesStore.set(reqBody, adapter.response);
+            }
+            await recordApiCall(c, providerCfg.provider, 200, timeKeeper.timestamps(), adapter.usage, undefined, true);
+        });
     });
-  });
 });
-
 export default responsesRouter;
