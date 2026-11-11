@@ -1,92 +1,88 @@
+// SPDX-License-Identifier: MIT
+// Copyright (c) 2025 AnyLLM
+
 import React, { useState, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import { Navbar } from "./components/Navbar";
-import { AuthModal } from "./components/AuthModal";
-import { SettingsModal } from "./components/SettingsModal";
+import { PublicLayout } from "./components/PublicLayout";
+import { DashboardLayout } from "./components/DashboardLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
 import { HomePage } from "./pages/HomePage";
-import { DemoPage } from "./pages/DemoPage";
-import { PlaygroundPage } from "./pages/PlaygroundPage";
+import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 import { ModelsPage } from "./pages/ModelsPage";
+import { PlaygroundPage } from "./pages/PlaygroundPage";
+import { DocsPage } from "./pages/DocsPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ApiKeysPage } from "./pages/ApiKeysPage";
+import { UsagePage } from "./pages/UsagePage";
 import { ProvidersPage } from "./pages/ProvidersPage";
-import { DocsPage } from "./pages/DocsPage";
+import { SettingsPage } from "./pages/SettingsPage";
+
 import { Model, Provider, GatewayStatus } from "./types";
 import { fetchModels, fetchProviders, fetchGatewayStatus } from "./api";
+
 const AnyLLMApp: React.FC = () => {
-    const [currentTab, setCurrentTab] = useState("home");
-    const [models, setModels] = useState<Model[]>([]);
-    const [providers, setProviders] = useState<Provider[]>([]);
-    const [status, setStatus] = useState<GatewayStatus | null>(null);
-    const [selectedModelId, setSelectedModelId] = useState("openai/gpt-4o");
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [authModalState, setAuthModalState] = useState<{
-        isOpen: boolean;
-        tab: "signin" | "signup";
-    }>({
-        isOpen: false,
-        tab: "signin",
-    });
-    useEffect(() => {
-        async function init() {
-            try {
-                const [modelsData, providersData, statusData] = await Promise.all([
-                    fetchModels(),
-                    fetchProviders(),
-                    fetchGatewayStatus(),
-                ]);
-                setModels(modelsData);
-                setProviders(providersData);
-                setStatus(statusData);
-                if (modelsData.length > 0) {
-                    const firstNonWildcard = modelsData.find((m) => m.id !== "*");
-                    if (firstNonWildcard) {
-                        setSelectedModelId(firstNonWildcard.id);
-                    }
-                }
-            }
-            catch (err) {
-                console.error("Initialization error", err);
-            }
-        }
-        init();
-    }, []);
-    const handleSelectModelForChat = (modelId: string) => {
-        setSelectedModelId(modelId);
-        setCurrentTab("playground");
-    };
-    const openAuth = (tab: "signin" | "signup" = "signin") => {
-        setAuthModalState({ isOpen: true, tab });
-    };
-    return (<div className="min-h-screen bg-[#090d16] text-slate-100 flex flex-col font-['Plus_Jakarta_Sans',sans-serif]">
-      <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} status={status} onOpenSettings={() => setIsSettingsOpen(true)} onOpenAuth={openAuth}/>
+  const [models, setModels] = useState<Model[]>([]);
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [status, setStatus] = useState<GatewayStatus | null>(null);
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {currentTab === "home" && (<HomePage onNavigate={setCurrentTab} onOpenAuth={openAuth} models={models}/>)}
+  useEffect(() => {
+    async function init() {
+      try {
+        const [modelsData, providersData, statusData] = await Promise.all([
+          fetchModels().catch(() => []),
+          fetchProviders().catch(() => []),
+          fetchGatewayStatus().catch(() => null),
+        ]);
+        setModels(modelsData);
+        setProviders(providersData);
+        setStatus(statusData);
+      } catch (err) {
+        console.error("Initialization error", err);
+      }
+    }
+    init();
+  }, []);
 
-        {currentTab === "demo" && (<DemoPage onNavigate={setCurrentTab} onOpenAuth={openAuth}/>)}
+  return (
+    <BrowserRouter>
+      <Routes>
+        {/* Public & Adaptive Layout Routes */}
+        <Route element={<PublicLayout status={status} />}>
+          <Route path="/" element={<HomePage models={models} />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/models" element={<ModelsPage models={models} />} />
+          <Route path="/playground" element={<PlaygroundPage models={models} />} />
+          <Route path="/docs" element={<DocsPage />} />
+        </Route>
 
-        {currentTab === "playground" && (<PlaygroundPage models={models.filter((m) => m.id !== "*")} selectedModelId={selectedModelId} onSelectModel={setSelectedModelId}/>)}
+        {/* Protected Dashboard Layout Routes */}
+        <Route path="/dashboard" element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout status={status} />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="api-keys" element={<ApiKeysPage />} />
+            <Route path="usage" element={<UsagePage />} />
+            <Route path="providers" element={<ProvidersPage providers={providers} />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
 
-        {currentTab === "models" && (<ModelsPage models={models} onSelectModelForChat={handleSelectModelForChat}/>)}
-
-        {currentTab === "dashboard" && (<DashboardPage onNavigate={setCurrentTab} onOpenAuth={openAuth}/>)}
-
-        {currentTab === "keys" && <ApiKeysPage />}
-
-        {currentTab === "providers" && <ProvidersPage providers={providers}/>}
-
-        {currentTab === "docs" && <DocsPage />}
-      </main>
-
-      <AuthModal isOpen={authModalState.isOpen} onClose={() => setAuthModalState({ ...authModalState, isOpen: false })} initialTab={authModalState.tab}/>
-
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)}/>
-    </div>);
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
 };
+
 export const App: React.FC = () => {
-    return (<AuthProvider>
+  return (
+    <AuthProvider>
       <AnyLLMApp />
-    </AuthProvider>);
+    </AuthProvider>
+  );
 };
+
 export default App;

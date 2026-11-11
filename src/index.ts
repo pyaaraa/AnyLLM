@@ -8,7 +8,7 @@ const main = () => {
         port: config.server.port,
         hostname: config.server.host,
     }, (info) => {
-        console.log(`anyllm up at http://${info.family === "IPv4" ? info.address : `[${info.address}]`}:${info.port}/`);
+        console.log(`anyllm    up at http://${info.family === "IPv4" ? info.address : `[${info.address}]`}:${info.port}/`);
     });
 };
 main();

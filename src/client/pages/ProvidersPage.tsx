@@ -1,10 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Cpu, CheckCircle2, Activity, Layers, FileCode, ShieldCheck, } from "lucide-react";
 import { Provider } from "../types";
+import { fetchProviders } from "../api";
+
 interface ProvidersPageProps {
-    providers: Provider[];
+    providers?: Provider[];
 }
-export const ProvidersPage: React.FC<ProvidersPageProps> = ({ providers }) => {
+export const ProvidersPage: React.FC<ProvidersPageProps> = ({ providers: propProviders }) => {
+    const [internalProviders, setInternalProviders] = useState<Provider[]>(propProviders || []);
+    const providers = propProviders && propProviders.length > 0 ? propProviders : internalProviders;
+
+    useEffect(() => {
+        if (!propProviders || propProviders.length === 0) {
+            fetchProviders().then((data) => setInternalProviders(data)).catch(console.error);
+        }
+    }, [propProviders]);
     const [pingStatus, setPingStatus] = useState<Record<string, number | "error">>({});
     const [testingPing, setTestingPing] = useState(false);
     const testGatewayLatency = async () => {
@@ -61,7 +71,7 @@ export const ProvidersPage: React.FC<ProvidersPageProps> = ({ providers }) => {
           </p>
         </div>
 
-        <button onClick={testGatewayLatency} disabled={testingPing} className="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold transition disabled:opacity-50 self-start sm:self-auto">
+        <button onClick={testGatewayLatency} disabled={testingPing} className="inline-flex items-center space-x-2 px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-sm font-semibold transition disabled:opacity-50 self-start sm:self-auto">
           <Activity className={`w-4 h-4 text-emerald-400 ${testingPing ? "animate-spin" : ""}`}/>
           <span>{testingPing ? "Probing Providers..." : "Probe Gateway Latency"}</span>
         </button>

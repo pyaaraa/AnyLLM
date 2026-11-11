@@ -1,79 +1,38 @@
 {
   "users": {
-    "user_demo": {
-      "id": "user_demo",
-      "name": "Demo Explorer",
-      "email": "demo@anyllm.local",
+    "demo_1794261605764_09ff499d": {
+      "id": "demo_1794261605764_09ff499d",
+      "name": "Anonymous Explorer",
+      "email": "demo_1794261605763@anyllm.local",
       "isDemo": true,
       "tier": "Free Demo",
-      "tokenBalance": 100000,
-      "tokensUsed": 14200,
-      "requestsCount": 28,
-      "createdAt": 1794081979536
+      "tokenBalance": 10000,
+      "tokensUsed": 0,
+      "requestsCount": 0,
+      "createdAt": 1794261605764
+    },
+    "usr_1794262706109_1e6ea9ab": {
+      "id": "usr_1794262706109_1e6ea9ab",
+      "name": "Google Developer",
+      "email": "developer@google.com",
+      "isDemo": false,
+      "tier": "Developer",
+      "tokenBalance": 250000,
+      "tokensUsed": 0,
+      "requestsCount": 0,
+      "createdAt": 1794262706110
     }
   },
   "sessions": {
-    "anyllm_sess_N4XfM3pc1kaRgXkMH2vEWYsUibdpSGof": {
-      "userId": "user_demo",
-      "expiresAt": 1796846779536
+    "anyllm_sess_CADkhpyveeN0BkwBe0YD4VXva5kFKUwB": {
+      "userId": "demo_1794261605764_09ff499d",
+      "expiresAt": 1796853605765
+    },
+    "anyllm_sess_WPUvzYUqFy6x6PJ6vvr8Z1gDHx1IXiVp": {
+      "userId": "usr_1794262706109_1e6ea9ab",
+      "expiresAt": 1796854706111
     }
   },
-  "apiKeys": {
-    "key_demo_default": {
-      "id": "key_demo_default",
-      "userId": "user_demo",
-      "name": "Default Demo Key",
-      "keyPrefix": "sk-anyllm-demo",
-      "keyHash": "1098ba593ca06a7a1d464d875772a23881d7bb959a2252c0c043de41576d5484",
-      "maskedKey": "sk-anyllm-••••••••demo",
-      "createdAt": 1794168379536
-    },
-    "key_1794254791213_262d78": {
-      "id": "key_1794254791213_262d78",
-      "userId": "user_demo",
-      "name": "Cursor Agent",
-      "keyPrefix": "sk-anyllm-KoYMaq",
-      "keyHash": "9f31ae9ae39428307ac3b8e9a45a06887231ab3d001ab3adb68caac276c3efdf",
-      "maskedKey": "sk-anyllm-••••••••CK_t",
-      "createdAt": 1794254791213
-    }
-  },
-  "usage": [
-    {
-      "id": "usg_1",
-      "userId": "user_demo",
-      "model": "openai/gpt-4o",
-      "provider": "openai",
-      "promptTokens": 420,
-      "completionTokens": 280,
-      "totalTokens": 700,
-      "latencyMs": 640,
-      "costSavedEst": 0.012,
-      "timestamp": 1794240379536
-    },
-    {
-      "id": "usg_2",
-      "userId": "user_demo",
-      "model": "anthropic/claude-3-5-sonnet",
-      "provider": "anthropic",
-      "promptTokens": 850,
-      "completionTokens": 520,
-      "totalTokens": 1370,
-      "latencyMs": 820,
-      "costSavedEst": 0.024,
-      "timestamp": 1794247579536
-    },
-    {
-      "id": "usg_3",
-      "userId": "user_demo",
-      "model": "meta-llama/llama-3.3-70b-instruct",
-      "provider": "groq",
-      "promptTokens": 1200,
-      "completionTokens": 890,
-      "totalTokens": 2090,
-      "latencyMs": 310,
-      "costSavedEst": 0.045,
-      "timestamp": 1794252979536
-    }
-  ]
+  "apiKeys": {},
+  "usage": []
 }

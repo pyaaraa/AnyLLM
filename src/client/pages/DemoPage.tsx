@@ -8,6 +8,7 @@ interface DemoPageProps {
 }
 export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) => {
     const { user, isDemo, loginAsDemo } = useAuth();
+    const [demoCompleted, setDemoCompleted] = useState(false);
     const [failoverStep, setFailoverStep] = useState<"idle" | "testing" | "failed" | "fallback" | "success">("idle");
     const [selectedPreset, setSelectedPreset] = useState(0);
     const [demoOutput, setDemoOutput] = useState("");
@@ -42,6 +43,11 @@ export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) =>
         }, 800);
     };
     const runLivePrompt = async () => {
+        // Enforce one‑prompt demo limit
+        if (user && user.isDemo && user.requestsCount >= 1) {
+            setDemoCompleted(true);
+            return;
+        }
         setIsGenerating(true);
         setDemoOutput("");
         const preset = presets[selectedPreset];
@@ -58,11 +64,11 @@ export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) =>
                     setDemoOutput(chunk);
                 },
             });
-        }
-        catch (err: any) {
-            setDemoOutput(`Demo Simulation: AnyLLM successfully routed prompt via gateway fallback route.\n\nSimulated output:\nAnyLLM operates as a smart proxy receiving client prompts and dispatching them with multi-provider retry logic. If the primary upstream model throttles, the gateway cascades to backup providers within milliseconds. This guarantees enterprise-grade resilience with zero code modifications.`);
-        }
-        finally {
+            // Successful run – mark demo as used
+            setDemoCompleted(true);
+        } catch (err: any) {
+            setDemoOutput(`Demo Simulation: AnyLLM successfully routed prompt via gateway fallback route.\n\nSimulated output:\nAnyLLM operates as a smart proxy receiving client prompts and dispatching them with multi-provider retry logic. If the primary upstream model throttles, the gateway cascades to backup providers within milliseconds. This guarantees enterprise‑grade resilience with zero code modifications.`);
+        } finally {
             setIsGenerating(false);
         }
     };
@@ -107,7 +113,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) =>
             </p>
           </div>
 
-          <button onClick={runFailoverSimulation} disabled={failoverStep === "testing" || failoverStep === "failed" || failoverStep === "fallback"} className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-md disabled:opacity-50">
+          <button onClick={runFailoverSimulation} disabled={failoverStep === "testing" || failoverStep === "failed" || failoverStep === "fallback"} className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-md disabled:opacity-50">
             <Play className="w-3.5 h-3.5 fill-current"/>
             <span>Simulate Upstream Outage</span>
           </button>
@@ -194,7 +200,7 @@ export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) =>
 
         
         <div>
-          <button onClick={runLivePrompt} disabled={isGenerating} className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-emerald-950/20 disabled:opacity-50 flex items-center space-x-2">
+          <button onClick={runLivePrompt} disabled={isGenerating} className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-lg shadow-emerald-950/20 disabled:opacity-50 flex items-center space-x-2">
             <Play className="w-3.5 h-3.5 fill-current"/>
             <span>{isGenerating ? "Streaming from AnyLLM Gateway..." : "Run Test Completion"}</span>
           </button>
@@ -220,10 +226,10 @@ export const DemoPage: React.FC<DemoPageProps> = ({ onNavigate, onOpenAuth }) =>
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => onOpenAuth("signup")} className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-md shadow-emerald-950/30">
+          <button onClick={() => onOpenAuth("signup")} className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition shadow-md shadow-emerald-950/30">
             Create Free Account
           </button>
-          <button onClick={() => onNavigate("playground")} className="px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition border border-slate-700">
+          <button onClick={() => onNavigate("playground")} className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-bold transition border border-slate-700">
             Open Full Studio
           </button>
         </div>

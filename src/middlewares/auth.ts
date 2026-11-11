@@ -6,6 +6,8 @@ import { hashApiKey } from "../utils/api-key.js";
 import { getAuth } from "../utils/auth.js";
 import { getConfig } from "../utils/config.js";
 import { getDb } from "../utils/database.js";
+import { localDB } from "../utils/local-db.js";
+
 export const auth = createMiddleware<ContextEnv>(async (c, next) => {
     const cfg = getConfig(c);
     const apiKey = c.req.header("Authorization")?.split(" ")[1] ?? c.req.header("x-api-key");
@@ -18,6 +20,34 @@ export const auth = createMiddleware<ContextEnv>(async (c, next) => {
             await next();
             return;
         }
+
+        // Check local database session tokens (for web users and anonymous demo sessions)
+        const sessionUser = localDB.getUserBySession(apiKey);
+        if (sessionUser) {
+            c.set("auth", {
+                type: "access-key",
+                accessKey: apiKey,
+                user: sessionUser,
+                userId: sessionUser.id,
+            } as any);
+            await next();
+            return;
+        }
+
+        // Check local database user API keys
+        const dbApiKey = localDB.findApiKey(apiKey);
+        if (dbApiKey) {
+            const keyUser = localDB.findUserById(dbApiKey.userId);
+            c.set("auth", {
+                type: "access-key",
+                accessKey: apiKey,
+                user: keyUser,
+                userId: dbApiKey.userId,
+            } as any);
+            await next();
+            return;
+        }
+
         if (cfg.access_keys.includes(apiKey) ||
             cfg.access_keys.includes("*") ||
             (!cfg.auth.enabled && cfg.access_keys.length === 0)) {
@@ -69,6 +99,7 @@ export const auth = createMiddleware<ContextEnv>(async (c, next) => {
     }
     await next();
 });
+
 export const requireAuth = (type?: AuthType | AuthType[]) => {
     return createMiddleware<ContextEnv>(async (c, next) => {
         const auth = c.var.auth;

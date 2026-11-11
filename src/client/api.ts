@@ -97,6 +97,23 @@ export async function apiLogin(email: string, password: string): Promise<{
         throw new Error(data.error?.message || "Login failed");
     return data;
 }
+export async function apiGoogleLogin(email?: string, name?: string): Promise<{
+    user?: User;
+    token?: string;
+    url?: string;
+    error?: { message: string; requiredEnv?: string[]; redirectUri?: string };
+}> {
+    const res = await fetch(`${BASE_URL}/v1/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, name }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(data.error?.message || "Google authentication failed");
+    }
+    return data;
+}
 export async function apiGetMe(): Promise<User | null> {
     const token = getAuthToken();
     if (!token)

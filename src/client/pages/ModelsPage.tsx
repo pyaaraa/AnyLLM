@@ -1,11 +1,46 @@
-import React, { useState, useMemo } from "react";
-import { Search, Zap, Sparkles, ArrowRight, Copy, Check, Cpu, Layers, ChevronRight, Info, } from "lucide-react";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  Search,
+  Zap,
+  Sparkles,
+  ArrowRight,
+  Copy,
+  Check,
+  Cpu,
+  Layers,
+  ChevronRight,
+  Info,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Model } from "../types";
+import { fetchModels } from "../api";
+
 interface ModelsPageProps {
-    models: Model[];
-    onSelectModelForChat: (modelId: string) => void;
+  models?: Model[];
+  onSelectModelForChat?: (modelId: string) => void;
 }
-export const ModelsPage: React.FC<ModelsPageProps> = ({ models, onSelectModelForChat, }) => {
+
+export const ModelsPage: React.FC<ModelsPageProps> = ({
+  models: propModels,
+  onSelectModelForChat,
+}) => {
+  const navigate = useNavigate();
+  const [internalModels, setInternalModels] = useState<Model[]>(propModels || []);
+  const models = propModels && propModels.length > 0 ? propModels : internalModels;
+
+  useEffect(() => {
+    if (!propModels || propModels.length === 0) {
+      fetchModels().then((data) => setInternalModels(data)).catch(console.error);
+    }
+  }, [propModels]);
+
+  const handleOpenPlayground = (id: string) => {
+    if (onSelectModelForChat) {
+      onSelectModelForChat(id);
+    } else {
+      navigate(`/playground?model=${encodeURIComponent(id)}`);
+    }
+  };
     const [search, setSearch] = useState("");
     const [selectedProvider, setSelectedProvider] = useState("all");
     const [selectedModal, setSelectedModal] = useState<Model | null>(null);
@@ -149,13 +184,13 @@ export const ModelsPage: React.FC<ModelsPageProps> = ({ models, onSelectModelFor
               </div>
 
               
-              <div className="flex items-center justify-between gap-2">
-                <button onClick={() => setSelectedModal(model)} className="flex-1 inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+              <div className="flex items-center justify-between gap-2.5">
+                <button onClick={() => setSelectedModal(model)} className="flex-1 inline-flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                   <Info className="w-3.5 h-3.5"/>
                   <span>Specs</span>
                 </button>
 
-                <button onClick={() => onSelectModelForChat(model.id)} className="flex-1 inline-flex items-center justify-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-sm">
+                <button onClick={() => onSelectModelForChat(model.id)} className="flex-1 inline-flex items-center justify-center space-x-1.5 px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition shadow-sm">
                   <Zap className="w-3.5 h-3.5"/>
                   <span>Chat</span>
                 </button>
@@ -233,14 +268,14 @@ export const ModelsPage: React.FC<ModelsPageProps> = ({ models, onSelectModelFor
             </div>
 
             <div className="flex items-center justify-end space-x-3 pt-3 border-t border-slate-800">
-              <button onClick={() => setSelectedModal(null)} className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white transition">
+              <button onClick={() => setSelectedModal(null)} className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-white transition">
                 Close
               </button>
               <button onClick={() => {
                 const id = selectedModal.id;
                 setSelectedModal(null);
-                onSelectModelForChat(id);
-            }} className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition">
+                handleOpenPlayground(id);
+            }} className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm transition">
                 Open in Playground
               </button>
             </div>

@@ -48,10 +48,9 @@ app.get("/api/status", (c) => {
 });
 app.get("/", async (c, next) => {
     const accept = c.req.header("Accept") || "";
-    if (clientDist && accept.includes("text/html") && fs.existsSync(`${clientDist}/index.html`)) {
-        const res = await serveStatic({ path: `${clientDist}/index.html` })(c, next);
-        if (res)
-            return res;
+    if (clientDist && fs.existsSync(`${clientDist}/index.html`) && !accept.includes("application/json")) {
+        const html = fs.readFileSync(`${clientDist}/index.html`, "utf-8");
+        return c.html(html);
     }
     return c.json({
         name: "AnyLLM",
@@ -65,17 +64,15 @@ app.route("/anthropic", anthropicRouter);
 app.route("/openai", openaiRouter);
 app.route("/v1", v1Router);
 app.get("*", async (c, next) => {
-    const accept = c.req.header("Accept") || "";
+    const p = c.req.path;
     if (clientDist &&
-        accept.includes("text/html") &&
         fs.existsSync(`${clientDist}/index.html`) &&
-        !c.req.path.startsWith("/v1") &&
-        !c.req.path.startsWith("/openai") &&
-        !c.req.path.startsWith("/anthropic") &&
-        !c.req.path.startsWith("/api")) {
-        const res = await serveStatic({ path: `${clientDist}/index.html` })(c, next);
-        if (res)
-            return res;
+        !p.startsWith("/v1") &&
+        !p.startsWith("/openai") &&
+        !p.startsWith("/anthropic") &&
+        !p.startsWith("/api")) {
+        const html = fs.readFileSync(`${clientDist}/index.html`, "utf-8");
+        return c.html(html);
     }
     return next();
 });
